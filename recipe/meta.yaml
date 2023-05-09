@@ -11,29 +11,39 @@ source:
 
 build:
   number: 0
-  noarch: python
-  script: {{ PYTHON }} -m pip install . --no-deps -vv
+  script: {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
+  skip: True  # [py<38]
 
 requirements:
   host:
-    - python >=3.7
+    - python
     - pip
+    - setuptools
+    - wheel
   run:
-    - python >=3.7
+    - python
     - cloudpickle
     - psutil
 
 test:
   imports:
     - loky
+  commands:
+    - pip check
+  requires:
+    - pip
 
 about:
   home: https://github.com/joblib/loky
-  license: BSD-3-Clause
-  license_file: LICENSE.txt
-  summary: A robust implementation of concurrent.futures.ProcessPoolExecutor
-  doc_url: https://loky.readthedocs.io/
   dev_url: https://github.com/joblib/loky
+  doc_url: https://loky.readthedocs.io/
+  license: BSD-3-Clause
+  license_family: BSD
+  license_file: LICENSE.txt
+  summary: Robust and reusable Executor for joblib
+  description: |
+    A robust, cross-platform and cross-version implementation of 
+    concurrent.futures.ProcessPoolExecutor with many features.
 
 extra:
   recipe-maintainers:
