@@ -19,25 +19,41 @@ requirements:
     - python
     - pip
     - setuptools >=61.2
-    - cython
   run:
     - python
     - cloudpickle
-  build:
-    - {{ compiler('c') }}
+
+# Tests randomly handing without any reason.
+{% set ignore_tests = " --ignore=tests/test_loky_module.py" %}
+{% set ignore_tests = ignore_tests + " --ignore=tests/test_loky_backend.py" %}
 
 test:
+  source_files:
+    - tests
   imports:
     - loky
-  commands:
-    - pip check
+    - loky._base
+    - loky.backend
+    - loky.backend.context
+    - loky.backend.queues
+    - loky.backend.reduction
+    - loky.backend.resource_tracker
+    - loky.backend.utils
+    - loky.process_executor
+    - loky.reusable_executor
   requires:
     - pip
+    - pytest
+    - cloudpickle
+  commands:
+    - pip check
+    - python -c "from importlib.metadata import version; assert(version('{{ name }}')=='{{ version }}')"
+    - pytest -v tests {{ ignore_tests }}
 
 about:
   home: https://github.com/joblib/loky
   dev_url: https://github.com/joblib/loky
-  doc_url: https://loky.readthedocs.io/
+  doc_url: https://loky.readthedocs.io
   license: BSD-3-Clause
   license_family: BSD
   license_file: LICENSE.txt
@@ -45,8 +61,6 @@ about:
   description: |
     A robust, cross-platform and cross-version implementation of
     concurrent.futures.ProcessPoolExecutor with many features.
-
-
 
 extra:
   recipe-maintainers:
