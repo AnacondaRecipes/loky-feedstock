@@ -1,47 +1,65 @@
 {% set name = "loky" %}
-{% set version = "3.4.0" %}
+{% set version = "3.5.6" %}
 
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: 2190f938bd07ad809a88ee0fe652e44c816f612d672889b5e76dbb9b089adfcd
+  url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: d96935ed689aa53eeb7b329769544950fa10a52706968f5d0af3d9c33a761e77
 
 build:
   number: 0
   script: {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
-  skip: True  # [py<37]
+  skip: true  # [py<39]
 
 requirements:
   host:
     - python
     - pip
-    - setuptools
-    - wheel
+    - setuptools >=61.2
   run:
     - python
     - cloudpickle
 
+# Tests randomly handing without any reason.
+{% set ignore_tests = " --ignore=tests/test_loky_module.py" %}
+{% set ignore_tests = ignore_tests + " --ignore=tests/test_loky_backend.py" %}
+
 test:
+  source_files:
+    - tests
   imports:
     - loky
-  commands:
-    - pip check
+    - loky._base
+    - loky.backend
+    - loky.backend.context
+    - loky.backend.queues
+    - loky.backend.reduction
+    - loky.backend.resource_tracker
+    - loky.backend.utils
+    - loky.process_executor
+    - loky.reusable_executor
   requires:
     - pip
+    - pytest
+    - cloudpickle
+  commands:
+    - pip check
+    - python -c "from importlib.metadata import version; assert(version('{{ name }}')=='{{ version }}')"
+    - pytest -v tests {{ ignore_tests }}
 
 about:
   home: https://github.com/joblib/loky
   dev_url: https://github.com/joblib/loky
-  doc_url: https://loky.readthedocs.io/
+  doc_url: https://loky.readthedocs.io
   license: BSD-3-Clause
   license_family: BSD
   license_file: LICENSE.txt
   summary: Robust and reusable Executor for joblib
   description: |
-    A robust, cross-platform and cross-version implementation of 
+    A robust, cross-platform and cross-version implementation of
     concurrent.futures.ProcessPoolExecutor with many features.
 
 extra:
